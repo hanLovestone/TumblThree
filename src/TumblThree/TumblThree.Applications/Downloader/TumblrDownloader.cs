@@ -194,28 +194,31 @@ namespace TumblThree.Applications.Downloader
             }
         }
 
-        private async Task AddUrlsToDownloadList(string document, IList<string> tags, IProgress<DownloadProgress> progress,
-            int crawlerNumber, CancellationToken ct, PauseToken pt)
+        private async Task AddUrlsToDownloadList(string document, IList<string> tags, IProgress<DownloadProgress> progress, int crawlerNumber, CancellationToken ct, PauseToken pt)
         {
-            if (ct.IsCancellationRequested)
+            while (true)
             {
-                return;
-            }
-            if (pt.IsPaused)
-            {
-                pt.WaitWhilePausedWithResponseAsyc().Wait();
-            }
+                if (ct.IsCancellationRequested)
+                {
+                    return;
+                }
+                if (pt.IsPaused)
+                {
+                    pt.WaitWhilePausedWithResponseAsyc().Wait();
+                }
 
-            AddPhotoUrlToDownloadList(document, tags);
-            AddVideoUrlToDownloadList(document, tags);
+                AddPhotoUrlToDownloadList(document, tags);
+                AddVideoUrlToDownloadList(document, tags);
 
-            Interlocked.Increment(ref numberOfPagesCrawled);
-            UpdateProgressQueueInformation(progress, Resources.ProgressGetUrlShort, numberOfPagesCrawled);
-            document = await RequestDataAsync(blog.Url + "page/" + crawlerNumber);
-            if (!document.Contains((crawlerNumber + 1).ToString()))
-                return;
-            crawlerNumber += shellService.Settings.ParallelScans;
-            await AddUrlsToDownloadList(document, tags, progress, crawlerNumber, ct, pt);
+                Interlocked.Increment(ref numberOfPagesCrawled);
+                UpdateProgressQueueInformation(progress, Resources.ProgressGetUrlShort, numberOfPagesCrawled);
+                document = await RequestDataAsync(blog.Url + "page/" + crawlerNumber);
+                if (!document.Contains((crawlerNumber + 1).ToString()))
+                {
+                    return;
+                }
+                crawlerNumber += shellService.Settings.ParallelScans;
+            }
         }
 
         private void AddPhotoUrlToDownloadList(string document, IList<string> tags)
