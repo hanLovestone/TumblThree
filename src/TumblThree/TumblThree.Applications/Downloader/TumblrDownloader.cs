@@ -353,7 +353,6 @@ namespace TumblThree.Applications.Downloader
         //    }
         //}
 
-
         private void AddPhotoUrlToDownloadList(string document, IList<string> tags)
         {
             if (blog.DownloadPhoto)
