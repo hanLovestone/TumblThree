@@ -345,17 +345,26 @@ namespace TumblThree.Applications.Controllers
             }
             IBlog blog;
 
-            // TODO: Dependency, SOLID!
+            // TODO: Dependency, not SOLID!
             if (Validator.IsValidTumblrUrl(blogUrl))
                 blog = new Blog(blogUrl, Path.Combine(shellService.Settings.DownloadLocation, "Index"), BlogTypes.tumblr);
-            else if (Validator.IsValidTumblrLikedByUrl(blogUrl)) 
+            else if (Validator.IsValidTumblrLikedByUrl(blogUrl))
                 blog = new TumblrLikeByBlog(blogUrl, Path.Combine(shellService.Settings.DownloadLocation, "Index"), BlogTypes.tlb);
+            //else if (Validator.IsValidTumblrSearchUrl(blogUrl))
+            //    blog = new TumblrSearchBlog(blogUrl, Path.Combine(shellService.Settings.DownloadLocation, "Index"), BlogTypes.ts);
             else
                 return;
 
             TransferGlobalSettingsToBlog(blog);
             IDownloader downloader = DownloaderFactory.GetDownloader(blog.BlogType, shellService, crawlerService, blog);
             await downloader.IsBlogOnlineAsync();
+
+            if (CheckIfTumblrPrivateBlog(blog))
+            {
+                blog = PromoteTumblrBlogToPrivateBlog(blogUrl);
+                downloader = DownloaderFactory.GetDownloader(blog.BlogType, shellService, crawlerService, blog);
+            }
+
             await downloader.UpdateMetaInformationAsync();
 
             lock (lockObject)
@@ -371,6 +380,25 @@ namespace TumblThree.Applications.Controllers
                     QueueOnDispatcher.CheckBeginInvokeOnUI((Action)(() => managerService.BlogFiles.Add(blog)));
                 }
             }
+        }
+
+        private bool CheckIfTumblrPrivateBlog(IBlog blog)
+        {
+            if (blog.BlogType == BlogTypes.tumblr && !blog.Online)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private IBlog PromoteTumblrBlogToPrivateBlog(string blogUrl)
+        {
+            IBlog blog;
+            blog = new Blog(blogUrl, Path.Combine(shellService.Settings.DownloadLocation, "Index"), BlogTypes.tmblrpriv);
+            TransferGlobalSettingsToBlog(blog);
+            blog.BlogType = BlogTypes.tmblrpriv;
+            blog.Online = true;
+            return blog;
         }
 
         private void TransferGlobalSettingsToBlog(IBlog blog)
@@ -409,6 +437,7 @@ namespace TumblThree.Applications.Controllers
         private async Task AddBlogBatchedAsync(IEnumerable<string> urls)
         {
             var semaphoreSlim = new SemaphoreSlim(15);
+            //foreach (string url in urls.Where(url => Validator.IsValidTumblrUrl(url) || Validator.IsValidTumblrLikedByUrl(url) || Validator.IsValidTumblrSearchUrl(url)))
             foreach (string url in urls.Where(url => Validator.IsValidTumblrUrl(url) || Validator.IsValidTumblrLikedByUrl(url)))
             {
                 await semaphoreSlim.WaitAsync();
