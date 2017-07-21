@@ -182,7 +182,7 @@ namespace TumblThree.Applications.Downloader
                         string document = await RequestDataAsync(blog.Url + "page/" + crawlerNumber);
                         await AddUrlsToDownloadList(document, tags, progress, crawlerNumber, ct, pt);
                     }
-                    catch (WebException)
+                    catch
                     {
                     }
                     finally
