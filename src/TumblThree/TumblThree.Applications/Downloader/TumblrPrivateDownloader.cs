@@ -816,7 +816,7 @@ namespace TumblThree.Applications.Downloader
                    Environment.NewLine +
                    string.Format(CultureInfo.CurrentCulture, Resources.ReblogName, post.reblogged_from_name) +
                    Environment.NewLine +
-                   string.Format(CultureInfo.CurrentCulture, Resources.Quote, string.Join(", ", post.dialogue.SelectMany(dialogue => dialogue.phrase.ToArray()))) +
+                   string.Format(CultureInfo.CurrentCulture, Resources.Quote, post.dialogue.Select(dialogue => dialogue.phrase).FirstOrDefault()) +
                    Environment.NewLine + post.body +
                    Environment.NewLine +
                    string.Format(CultureInfo.CurrentCulture, Resources.Tags,
@@ -858,7 +858,7 @@ namespace TumblThree.Applications.Downloader
                    Environment.NewLine +
                    string.Format(CultureInfo.CurrentCulture, Resources.ReblogName, post.reblogged_from_name) +
                    Environment.NewLine +
-                   string.Format(CultureInfo.CurrentCulture, Resources.Quote, string.Join(", ", post.dialogue.SelectMany(dialogue => dialogue.phrase.ToArray()))) +
+                   string.Format(CultureInfo.CurrentCulture, Resources.Quote, post.dialogue.Select(dialogue => dialogue.phrase).FirstOrDefault()) +
                    Environment.NewLine + post.body +
                    Environment.NewLine +
                    string.Format(CultureInfo.CurrentCulture, Resources.Tags,
@@ -901,9 +901,9 @@ namespace TumblThree.Applications.Downloader
                    Environment.NewLine +
                    string.Format(CultureInfo.CurrentCulture, Resources.ReblogName, post.reblogged_from_name) +
                    Environment.NewLine +
-                   string.Format(CultureInfo.CurrentCulture, Resources.PhotoUrl, string.Join(", ", post.photos.SelectMany(photo => photo.original_size.url.ToArray()))) +
+                   string.Format(CultureInfo.CurrentCulture, Resources.PhotoUrl, post.photos.Select(photo => photo.original_size.url).FirstOrDefault()) +
                    Environment.NewLine +
-                   string.Format(CultureInfo.CurrentCulture, Resources.PhotoCaption, string.Join(", ", post.photos.SelectMany(photo => photo.caption.ToArray()))) +
+                   string.Format(CultureInfo.CurrentCulture, Resources.PhotoCaption, post.photos.Select(photo => photo.caption).FirstOrDefault()) +
                    Environment.NewLine +
                    string.Format(CultureInfo.CurrentCulture, Resources.Tags,
                        string.Join(", ", post.tags.ToArray())) +
