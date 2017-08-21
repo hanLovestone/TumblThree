@@ -27,7 +27,7 @@ namespace TumblThree.Domain.Models
         private bool downloadUrlList;
         private bool downloadVideo;
         private bool forceRescan;
-        private bool forceSize;
+        private bool forceSize = true;
         private string lastDownloadedPhoto;
         private string lastDownloadedVideo;
         private string notes;
