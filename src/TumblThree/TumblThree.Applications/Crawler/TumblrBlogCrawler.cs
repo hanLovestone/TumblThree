@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
+using TumblThree.Applications.Crawler;
 using TumblThree.Applications.DataModels;
 using TumblThree.Applications.Properties;
 using TumblThree.Applications.Services;
@@ -18,19 +20,20 @@ namespace TumblThree.Applications.Downloader
 {
     [Export(typeof(IDownloader))]
     [ExportMetadata("BlogType", BlogTypes.tumblr)]
-    public class TumblrBlogDownloader : TumblrDownloader, IDownloader
+    public class TumblrBlogCrawler : AbstractCrawler, ICrawler
     {
-        public TumblrBlogDownloader(IShellService shellService, CancellationToken ct, PauseToken pt, IProgress<DownloadProgress> progress, PostCounter counter, FileDownloader fileDownloader, ICrawlerService crawlerService, IBlog blog, IFiles files)
-            : base(shellService, ct, pt, progress, counter, fileDownloader, crawlerService, blog, files)
+        public TumblrBlogCrawler(IShellService shellService, CancellationToken ct, PauseToken pt,
+            IProgress<DownloadProgress> progress, ICrawlerService crawlerService, IDownloader downloader, BlockingCollection<TumblrPost> producerConsumerCollection, IBlog blog, IFiles files)
+            : base(shellService, ct, pt, progress, crawlerService, downloader, producerConsumerCollection, blog, files)
         {
         }
 
         public async Task Crawl()
         {
-            Logger.Verbose("TumblrBlogDownloader.Crawl:Start");
+            Logger.Verbose("TumblrBlogCrawler.Crawl:Start");
 
             Task grabber = GetUrlsAsync();
-            Task<bool> downloader = DownloadBlogAsync();
+            Task<bool> download = downloader.DownloadBlogAsync();
 
             await grabber;
 
@@ -42,7 +45,7 @@ namespace TumblThree.Applications.Downloader
 
             CleanCollectedBlogStatistics();
 
-            await downloader;
+            await download;
 
             if (!ct.IsCancellationRequested)
             {
@@ -120,58 +123,6 @@ namespace TumblThree.Applications.Downloader
                 }
                 crawlerNumber += shellService.Settings.ParallelScans;
             }
-        }
-
-        protected override async Task DownloadPhotoAsync(TumblrPost downloadItem)
-        {
-            string url = Url(downloadItem);
-
-            if (blog.ForceSize)
-            {
-                url = ResizeTumblrImageUrl(url);
-            }
-
-            foreach (string host in shellService.Settings.TumblrHosts)
-            {
-                url = BuildRawImageUrl(url, host);
-                if (await DownloadDetectedImageUrl(url, PostDate(downloadItem)))
-                    return;
-            }
-
-            await DownloadDetectedImageUrl(Url(downloadItem), PostDate(downloadItem));
-        }
-
-        private async Task<bool> DownloadDetectedImageUrl(string url, DateTime postDate)
-        {
-            if (!(CheckIfFileExistsInDB(url) || CheckIfBlogShouldCheckDirectory(GetCoreImageUrl(url))))
-            {
-                string blogDownloadLocation = blog.DownloadLocation();
-                string fileName = url.Split('/').Last();
-                string fileLocation = FileLocation(blogDownloadLocation, fileName);
-                string fileLocationUrlList = FileLocationLocalized(blogDownloadLocation, Resources.FileNamePhotos);
-                UpdateProgressQueueInformation(Resources.ProgressDownloadImage, fileName);
-                if (await DownloadBinaryFile(fileLocation, fileLocationUrlList, url))
-                {
-                    SetFileDate(fileLocation, postDate);
-                    UpdateBlogPostCount(ref counter.Photos, value => blog.DownloadedPhotos = value);
-                    UpdateBlogProgress(ref counter.TotalDownloads);
-                    UpdateBlogDB(fileName);
-                    if (shellService.Settings.EnablePreview)
-                    {
-                        if (!fileName.EndsWith(".gif"))
-                        {
-                            blog.LastDownloadedPhoto = Path.GetFullPath(fileLocation);
-                        }
-                        else
-                        {
-                            blog.LastDownloadedVideo = Path.GetFullPath(fileLocation);
-                        }
-                    }
-                    return true;
-                }
-                return false;
-            }
-            return true;
         }
 
         private void AddPhotoUrlToDownloadList(string document)
