@@ -92,10 +92,10 @@ namespace TumblThree.Applications.Downloader
 
             producerConsumerCollection.CompleteAdding();
 
-            if (!ct.IsCancellationRequested)
-            {
+            //if (!ct.IsCancellationRequested)
+            //{
                 UpdateBlogStats();
-            }
+            //}
         }
 
         private async Task AddUrlsToDownloadList(string document, int crawlerNumber)
