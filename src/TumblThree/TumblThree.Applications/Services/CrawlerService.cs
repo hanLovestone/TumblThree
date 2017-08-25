@@ -36,7 +36,6 @@ namespace TumblThree.Applications.Services
         public CrawlerService(IShellService shellService)
         {
             this.shellService = shellService;
-
             activeItems = new ObservableCollection<QueueListItem>();
             readonlyActiveItems = new ReadOnlyObservableList<QueueListItem>(activeItems);
             activeItems.CollectionChanged += ActiveItemsCollectionChanged;

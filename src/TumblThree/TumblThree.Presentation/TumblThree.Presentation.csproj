@@ -109,6 +109,26 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\DetailsViews\DetailsTumblrPrivateBlogView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DetailsViews\DetailsTumblrBlogView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DetailsViews\DetailsTumblrSearchView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DetailsViews\DetailsTumblrLikedByView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\DetailsViews\DetailsTumblrTagSearchView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\FullScreenMediaView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -117,7 +137,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\DetailsView.xaml">
+    <Page Include="Views\DetailsAllView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -197,14 +217,29 @@
     <Compile Include="ValidationRules\TimeSpanRule.cs" />
     <Compile Include="ValidationRules\BandwidthRangeRule.cs" />
     <Compile Include="ValidationRules\IntRangeRule.cs" />
+    <Compile Include="Views\DetailsViews\DetailsTumblrPrivateBlogView.xaml.cs">
+      <DependentUpon>DetailsTumblrPrivateBlogView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DetailsViews\DetailsTumblrBlogView.xaml.cs">
+      <DependentUpon>DetailsTumblrBlogView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DetailsViews\DetailsTumblrSearchView.xaml.cs">
+      <DependentUpon>DetailsTumblrSearchView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DetailsViews\DetailsTumblrLikedByView.xaml.cs">
+      <DependentUpon>DetailsTumblrLikedByView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DetailsViews\DetailsTumblrTagSearchView.xaml.cs">
+      <DependentUpon>DetailsTumblrTagSearchView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\FullScreenMediaView.xaml.cs">
       <DependentUpon>FullScreenMediaView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\AboutView.xaml.cs">
       <DependentUpon>AboutView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\DetailsView.xaml.cs">
-      <DependentUpon>DetailsView.xaml</DependentUpon>
+    <Compile Include="Views\DetailsAllView.xaml.cs">
+      <DependentUpon>DetailsAllView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\CrawlerView.xaml.cs">
       <DependentUpon>CrawlerView.xaml</DependentUpon>
@@ -264,6 +299,10 @@
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\lib\RateLimiter\RateLimiter\RateLimiter.csproj">
+      <Project>{5b56eeeb-9107-4fc5-bd73-10fe96c9bded}</Project>
+      <Name>RateLimiter</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\lib\WpfApplicationFramework\WpfApplicationFramework\WpfApplicationFramework.csproj">
       <Project>{27b67dfe-0bf1-4435-b036-e4c083eaea03}</Project>
       <Name>WpfApplicationFramework</Name>

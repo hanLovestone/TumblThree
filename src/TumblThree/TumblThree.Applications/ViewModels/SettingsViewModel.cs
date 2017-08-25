@@ -668,7 +668,7 @@ namespace TumblThree.Applications.ViewModels
         }
 
         private void ApplySettings(bool downloadLocationChanged)
-        {      
+        {         
             if (!CrawlerService.IsCrawl && !downloadLocationChanged)
             {
                 CrawlerService.LoadLibraryCommand.Execute(null);
