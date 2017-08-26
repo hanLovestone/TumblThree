@@ -38,8 +38,15 @@ namespace TumblThree.Applications.Crawler
                 string document = await GetSvcPageAsync("1", "0");
                 blog.Online = true;
             }
-            catch (WebException)
+            catch (WebException webException)
             {
+                if (webException.Message.Contains("429"))
+                {
+                    Logger.Error("TumblrPrivateBlogCrawler:IsBlogOnlineAsync:WebException {0}", webException);
+                    shellService.ShowError(webException, Resources.LimitExceeded, blog.Name);
+                    blog.Online = true;
+                    return;
+                }
                 blog.Online = false;
             }
         }
@@ -193,7 +200,7 @@ namespace TumblThree.Applications.Crawler
 
             //if (!ct.IsCancellationRequested)
             //{
-                UpdateBlogStats();
+            UpdateBlogStats();
             //}
         }
 
