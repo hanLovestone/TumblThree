@@ -403,7 +403,7 @@ namespace TumblThree.Applications.Controllers
         private IBlog PromoteTumblrBlogToPrivateBlog(IBlog blog)
         {
             RemoveBlog(new[] { blog });
-            blog = new Blog(blog.Url, Path.Combine(shellService.Settings.DownloadLocation, "Index"), BlogTypes.tmblrpriv);
+            blog = Blog.Create(blog.Url, Path.Combine(shellService.Settings.DownloadLocation, "Index"), BlogTypes.tmblrpriv);
             TransferGlobalSettingsToBlog(blog);
             blog.BlogType = BlogTypes.tmblrpriv;
             blog.Online = true;
