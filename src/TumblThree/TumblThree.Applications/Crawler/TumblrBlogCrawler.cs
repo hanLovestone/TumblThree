@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Security.Policy;
+using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,10 +23,47 @@ namespace TumblThree.Applications.Downloader
     [ExportMetadata("BlogType", BlogTypes.tumblr)]
     public class TumblrBlogCrawler : AbstractCrawler, ICrawler
     {
+        private string authentication = String.Empty;
+
         public TumblrBlogCrawler(IShellService shellService, CancellationToken ct, PauseToken pt,
             IProgress<DownloadProgress> progress, ICrawlerService crawlerService, IDownloader downloader, BlockingCollection<TumblrPost> producerConsumerCollection, IBlog blog)
             : base(shellService, ct, pt, progress, crawlerService, downloader, producerConsumerCollection, blog)
         {
+        }
+
+        public override async Task IsBlogOnlineAsync()
+        {
+            try
+            {
+                blog.Online = true;
+                await UpdateAuthentication();
+                string document = await RequestDataAsync(blog.Url);
+                CheckIfPasswordProtecedBlog(document);
+                CheckIfHiddenBlog(document);
+            }
+            catch (WebException)
+            {
+                blog.Online = false;
+            }
+        }
+
+        private void CheckIfPasswordProtecedBlog(string document)
+        {
+            if (Regex.IsMatch(document, "<form id=\"auth_password\" method=\"post\">"))
+            {
+                Logger.Error("TumblrBlogCrawler:IsBlogOnlineAsync:PasswordProtectedBlog {0}", Resources.PasswordProtected, blog.Name);
+                shellService.ShowError(new WebException(), Resources.PasswordProtected, blog.Name);
+            }
+        }
+
+        private void CheckIfHiddenBlog(string document)
+        {
+            if (Regex.IsMatch(document, "/login_required/"))
+            {
+                Logger.Error("TumblrBlogCrawler:IsBlogOnlineAsync:NotLoggedIn {0}", Resources.NotLoggedIn, blog.Name);
+                shellService.ShowError(new WebException(), Resources.NotLoggedIn, blog.Name);
+                blog.Online = false;
+            }
         }
 
         public async Task Crawl()
@@ -62,7 +100,7 @@ namespace TumblThree.Applications.Downloader
             var semaphoreSlim = new SemaphoreSlim(shellService.Settings.ParallelScans);
             var trackedTasks = new List<Task>();
 
-            foreach (int crawlerNumber in Enumerable.Range(0, shellService.Settings.ParallelScans))
+            foreach (int crawlerNumber in Enumerable.Range(1, shellService.Settings.ParallelScans))
             {
                 await semaphoreSlim.WaitAsync();
 
@@ -96,6 +134,82 @@ namespace TumblThree.Applications.Downloader
             //{
                 UpdateBlogStats();
             //}
+        }
+
+        private async Task UpdateAuthentication()
+        {
+            string document = await ThrottleAsync(Authenticate);
+            authentication = ExtractAuthenticationKey(document);
+            await UpdateCookieWithAuthentication();
+        }
+
+        private async Task<T> ThrottleAsync<T>(Func<Task<T>> method)
+        {
+            if (shellService.Settings.LimitConnections)
+            {
+                return await method();
+            }
+            return await method();
+        }
+
+        protected async Task<string> Authenticate()
+        {
+            var requestRegistration = new CancellationTokenRegistration();
+            try
+            {
+                string url = "https://www.tumblr.com/blog_auth/" + blog.Name;
+                var headers = new Dictionary<string, string>();
+                HttpWebRequest request = CreatePostReqeust(url, url, headers);
+                string requestBody = "password=" + blog.Password;
+                using (Stream postStream = await request.GetRequestStreamAsync())
+                {
+                    byte[] postBytes = Encoding.ASCII.GetBytes(requestBody);
+                    await postStream.WriteAsync(postBytes, 0, postBytes.Length);
+                    await postStream.FlushAsync();
+                }
+
+                requestRegistration = ct.Register(() => request.Abort());
+                return await ReadReqestToEnd(request);
+            }
+            finally
+            {
+                requestRegistration.Dispose();
+            }
+        }
+
+        private static string ExtractAuthenticationKey(string document)
+        {
+            return Regex.Match(document, "name=\"auth\" value=\"([\\S]*)\"").Groups[1].Value;
+        }
+
+        protected async Task UpdateCookieWithAuthentication()
+        {
+            var requestRegistration = new CancellationTokenRegistration();
+            try
+            {
+                string url = "https://" + blog.Name + ".tumblr.com/";
+                string referer = "https://www.tumblr.com/blog_auth/" + blog.Name;
+                var headers = new Dictionary<string, string>();
+                headers.Add("DNT", "1");
+                HttpWebRequest request = CreatePostReqeust(url, referer, headers);
+                string requestBody = "auth=" + authentication;
+                using (Stream postStream = await request.GetRequestStreamAsync())
+                {
+                    byte[] postBytes = Encoding.ASCII.GetBytes(requestBody);
+                    await postStream.WriteAsync(postBytes, 0, postBytes.Length);
+                    await postStream.FlushAsync();
+                }
+
+                requestRegistration = ct.Register(() => request.Abort());
+                using (var response = await request.GetResponseAsync() as HttpWebResponse)
+                {
+                    SharedCookieService.SetUriCookieContainer(response.Cookies);
+                }
+            }
+            finally
+            {
+                requestRegistration.Dispose();
+            }
         }
 
         private async Task AddUrlsToDownloadList(string document, int crawlerNumber)
