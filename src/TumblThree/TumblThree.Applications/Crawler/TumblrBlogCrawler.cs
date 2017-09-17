@@ -97,10 +97,10 @@ namespace TumblThree.Applications.Downloader
 
         private async Task GetUrlsAsync()
         {
-            var semaphoreSlim = new SemaphoreSlim(shellService.Settings.ParallelScans);
+            var semaphoreSlim = new SemaphoreSlim(shellService.Settings.ConcurrentScans);
             var trackedTasks = new List<Task>();
 
-            foreach (int crawlerNumber in Enumerable.Range(1, shellService.Settings.ParallelScans))
+            foreach (int crawlerNumber in Enumerable.Range(1, shellService.Settings.ConcurrentScans))
             {
                 await semaphoreSlim.WaitAsync();
 
@@ -235,7 +235,7 @@ namespace TumblThree.Applications.Downloader
                 {
                     return;
                 }
-                crawlerNumber += shellService.Settings.ParallelScans;
+                crawlerNumber += shellService.Settings.ConcurrentScans;
             }
         }
 
