@@ -31,7 +31,6 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Grid MinHeight="46" Height="Auto" Grid.Row="0">
                             <Grid.ColumnDefinitions>
@@ -242,7 +241,7 @@
                                 </TextBox.Text>
                             </TextBox>-->
                         </Grid>
-                        <Grid MinHeight="46" Height="Auto" Grid.Row="6" HorizontalAlignment="Left">
+                        <!--<Grid MinHeight="46" Height="Auto" Grid.Row="6" HorizontalAlignment="Left">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
@@ -309,8 +308,8 @@
                                     </Binding>
                                 </TextBox.Text>
                             </TextBox>
-                        </Grid>
-                        <Grid MinHeight="46" Height="Auto" Grid.Row="7">
+                        </Grid>-->
+                        <Grid MinHeight="46" Height="Auto" Grid.Row="6">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
@@ -329,7 +328,7 @@
                          Grid.Column="3" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Center"
                          Margin="00,0,10,0" />
                         </Grid>
-                        <Grid MinHeight="46" Height="Auto" Grid.Row="8">
+                        <Grid MinHeight="46" Height="Auto" Grid.Row="7">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
@@ -368,7 +367,7 @@
                          Grid.Column="3" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Center"
                          Margin="00,0,10,0" />
                         </Grid>
-                        <Grid MinHeight="46" Height="Auto" Grid.Row="9" HorizontalAlignment="Left">
+                        <Grid MinHeight="46" Height="Auto" Grid.Row="8" HorizontalAlignment="Left">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
