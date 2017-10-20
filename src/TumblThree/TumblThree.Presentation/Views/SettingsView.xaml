@@ -31,6 +31,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Grid MinHeight="46" Height="Auto" Grid.Row="0">
                             <Grid.ColumnDefinitions>
@@ -205,7 +206,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <!--<CheckBox x:Name="checkBoxLimitScan" Content="{x:Static p:Resources.LimitScan}"
+                            <CheckBox x:Name="checkBoxLimitScan" Content="{x:Static p:Resources.LimitScan}"
                           IsChecked="{Binding LimitScanBandwidth, Mode=TwoWay}" Grid.Column="0" Grid.ColumnSpan="2"
                           VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10">
                                 <CheckBox.ToolTip>
@@ -217,8 +218,8 @@
                                         </StackPanel>
                                     </ToolTip>
                                 </CheckBox.ToolTip>
-                            </CheckBox>-->
-                            <!--<Label x:Name="bandwidthLabel" Grid.Column="2" Content="{x:Static p:Resources.Bandwidth}"
+                            </CheckBox>
+                            <Label x:Name="bandwidthLabel" Grid.Column="2" Content="{x:Static p:Resources.Bandwidth}"
                        VerticalAlignment="Center" HorizontalAlignment="Left">
                                 <Label.ToolTip>
                                     <ToolTip>
@@ -239,7 +240,7 @@
                                         </Binding.ValidationRules>
                                     </Binding>
                                 </TextBox.Text>
-                            </TextBox>-->
+                            </TextBox>
                         </Grid>
                         <!--<Grid MinHeight="46" Height="Auto" Grid.Row="6" HorizontalAlignment="Left">
                             <Grid.ColumnDefinitions>
@@ -309,7 +310,7 @@
                                 </TextBox.Text>
                             </TextBox>
                         </Grid>-->
-                        <Grid MinHeight="46" Height="Auto" Grid.Row="6">
+                        <Grid MinHeight="46" Height="Auto" Grid.Row="7">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
@@ -328,7 +329,7 @@
                          Grid.Column="3" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Center"
                          Margin="00,0,10,0" />
                         </Grid>
-                        <Grid MinHeight="46" Height="Auto" Grid.Row="7">
+                        <Grid MinHeight="46" Height="Auto" Grid.Row="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
@@ -367,7 +368,7 @@
                          Grid.Column="3" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Center"
                          Margin="00,0,10,0" />
                         </Grid>
-                        <Grid MinHeight="46" Height="Auto" Grid.Row="8" HorizontalAlignment="Left">
+                        <Grid MinHeight="46" Height="Auto" Grid.Row="9" HorizontalAlignment="Left">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
