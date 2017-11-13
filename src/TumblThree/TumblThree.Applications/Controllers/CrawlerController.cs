@@ -6,9 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Waf.Applications;
 
-using TumblThree.Applications.Crawler;
 using TumblThree.Applications.DataModels;
-using TumblThree.Applications.Downloader;
+using TumblThree.Applications.Crawler;
 using TumblThree.Applications.Services;
 using TumblThree.Applications.ViewModels;
 using TumblThree.Domain.Models;

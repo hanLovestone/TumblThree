@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 using TumblThree.Applications.Crawler;
 using TumblThree.Applications.DataModels;
+using TumblThree.Applications.Extensions;
 using TumblThree.Applications.Properties;
 using TumblThree.Applications.Services;
 using TumblThree.Domain;
@@ -23,11 +24,11 @@ namespace TumblThree.Applications.Downloader
     [ExportMetadata("BlogType", BlogTypes.tumblr)]
     public class TumblrBlogCrawler : AbstractCrawler, ICrawler
     {
-        private string authentication = String.Empty;
+        private string authentication = string.Empty;
 
         public TumblrBlogCrawler(IShellService shellService, CancellationToken ct, PauseToken pt,
-            IProgress<DownloadProgress> progress, ICrawlerService crawlerService, ISharedCookieService cookieService, IDownloader downloader, BlockingCollection<TumblrPost> producerConsumerCollection, IBlog blog)
-            : base(shellService, ct, pt, progress, crawlerService, cookieService, downloader, producerConsumerCollection, blog)
+            IProgress<DownloadProgress> progress, ICrawlerService crawlerService, IWebRequestFactory webRequestFactory, ISharedCookieService cookieService, IDownloader downloader, BlockingCollection<TumblrPost> producerConsumerCollection, IBlog blog)
+            : base(shellService, ct, pt, progress, crawlerService, webRequestFactory, cookieService, downloader, producerConsumerCollection, blog)
         {
         }
 
@@ -114,7 +115,7 @@ namespace TumblThree.Applications.Downloader
 
                     try
                     {
-                        string document = await RequestDataAsync(blog.Url + "page/" + crawlerNumber);
+                        string document = await RequestDataAsync(blog.Url + "page/" + crawlerNumber).TimeoutAfter(shellService.Settings.TimeOut); ;
                         await AddUrlsToDownloadList(document, crawlerNumber);
                     }
                     catch
@@ -138,9 +139,9 @@ namespace TumblThree.Applications.Downloader
 
         private async Task UpdateAuthentication()
         {
-            string document = await ThrottleAsync(Authenticate);
+            string document = await ThrottleAsync(Authenticate).TimeoutAfter(shellService.Settings.TimeOut);
             authentication = ExtractAuthenticationKey(document);
-            await UpdateCookieWithAuthentication();
+            await UpdateCookieWithAuthentication().TimeoutAfter(shellService.Settings.TimeOut);
         }
 
         private async Task<T> ThrottleAsync<T>(Func<Task<T>> method)
@@ -159,7 +160,9 @@ namespace TumblThree.Applications.Downloader
             {
                 string url = "https://www.tumblr.com/blog_auth/" + blog.Name;
                 var headers = new Dictionary<string, string>();
-                HttpWebRequest request = CreatePostReqeust(url, url, headers);
+                HttpWebRequest request = webRequestFactory.CreatePostReqeust(url, url, headers);
+                cookieService.GetUriCookie(request.CookieContainer, new Uri("https://www.tumblr.com/"));
+                cookieService.GetUriCookie(request.CookieContainer, new Uri("https://" + blog.Name.Replace("+", "-") + ".tumblr.com"));
                 string requestBody = "password=" + blog.Password;
                 using (Stream postStream = await request.GetRequestStreamAsync())
                 {
@@ -169,7 +172,7 @@ namespace TumblThree.Applications.Downloader
                 }
 
                 requestRegistration = ct.Register(() => request.Abort());
-                return await ReadReqestToEnd(request);
+                return await webRequestFactory.ReadReqestToEnd(request);
             }
             finally
             {
@@ -191,7 +194,9 @@ namespace TumblThree.Applications.Downloader
                 string referer = "https://www.tumblr.com/blog_auth/" + blog.Name;
                 var headers = new Dictionary<string, string>();
                 headers.Add("DNT", "1");
-                HttpWebRequest request = CreatePostReqeust(url, referer, headers);
+                HttpWebRequest request = webRequestFactory.CreatePostReqeust(url, referer, headers);
+                cookieService.GetUriCookie(request.CookieContainer, new Uri("https://www.tumblr.com/"));
+                cookieService.GetUriCookie(request.CookieContainer, new Uri("https://" + blog.Name.Replace("+", "-") + ".tumblr.com"));
                 string requestBody = "auth=" + authentication;
                 using (Stream postStream = await request.GetRequestStreamAsync())
                 {
