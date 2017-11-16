@@ -79,12 +79,16 @@ namespace TumblThree.Applications.Crawler
             progress.Report(newProgress);
         }
 
-        protected virtual async Task<string> RequestDataAsync(string url)
+        protected virtual async Task<string> RequestDataAsync(string url, params string[] cookieHosts)
         {
             var requestRegistration = new CancellationTokenRegistration();
             try
             {
                 HttpWebRequest request = webRequestFactory.CreateGetReqeust(url);
+                foreach (string cookieHost in cookieHosts)
+                {
+                    cookieService.GetUriCookie(request.CookieContainer, new Uri(cookieHost));
+                }
                 requestRegistration = ct.Register(() => request.Abort());
                 return await webRequestFactory.ReadReqestToEnd(request).TimeoutAfter(shellService.Settings.TimeOut);
             }
