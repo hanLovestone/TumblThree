@@ -22,7 +22,7 @@ using TumblThree.Domain.Models;
 namespace TumblThree.Applications.Downloader
 {
     [Export(typeof(IDownloader))]
-    [ExportMetadata("BlogType", BlogTypes.tumblr)]
+    [ExportMetadata("BlogType", typeof(TumblrBlog))]
     public class TumblrBlogCrawler : AbstractCrawler, ICrawler
     {
         private string authentication = string.Empty;
