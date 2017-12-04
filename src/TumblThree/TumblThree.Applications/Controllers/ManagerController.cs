@@ -330,11 +330,9 @@ namespace TumblThree.Applications.Controllers
 
         private void ShowFiles()
         {
-            string path = shellService.Settings.DownloadLocation;
-
             foreach (IBlog blog in selectionService.SelectedBlogFiles.ToArray())
             {
-                System.Diagnostics.Process.Start("explorer.exe", Path.Combine(path, blog.Name));
+                System.Diagnostics.Process.Start("explorer.exe", blog.DownloadLocation());
             }
         }
 
@@ -403,7 +401,7 @@ namespace TumblThree.Applications.Controllers
 
         private bool CheckIfTumblrHiddenBlog(IBlog blog)
         {
-            if (blog.BlogType == BlogTypes.tumblr && !blog.Online)
+            if (blog.BlogType == BlogTypes.tmblrpriv && blog.Online)
             {
                 return true;
             }

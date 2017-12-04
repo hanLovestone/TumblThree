@@ -64,7 +64,8 @@ namespace TumblThree.Applications.Downloader
             {
                 Logger.Error("TumblrBlogCrawler:IsBlogOnlineAsync:NotLoggedIn {0}", Resources.NotLoggedIn, blog.Name);
                 shellService.ShowError(new WebException(), Resources.NotLoggedIn, blog.Name);
-                blog.Online = false;
+                blog.Online = true;
+                blog.BlogType = BlogTypes.tmblrpriv;
             }
         }
 
