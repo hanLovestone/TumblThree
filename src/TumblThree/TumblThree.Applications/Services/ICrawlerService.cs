@@ -19,6 +19,8 @@ namespace TumblThree.Applications.Services
 
         ICommand LoadLibraryCommand { get; set; }
 
+        ICommand LoadAllDatabasesCommand { get; set; }
+
         ICommand RemoveBlogFromQueueCommand { get; set; }
 
         ICommand ListenClipboardCommand { get; set; }

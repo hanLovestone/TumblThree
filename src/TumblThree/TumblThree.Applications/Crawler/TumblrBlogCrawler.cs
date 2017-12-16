@@ -25,12 +25,18 @@ namespace TumblThree.Applications.Downloader
     [ExportMetadata("BlogType", typeof(TumblrBlog))]
     public class TumblrBlogCrawler : AbstractCrawler, ICrawler
     {
+        private readonly ICrawlerService crawlerService;
+        private readonly IDownloader downloader;
+        private readonly PauseToken pt;
         private string authentication = string.Empty;
 
         public TumblrBlogCrawler(IShellService shellService, CancellationToken ct, PauseToken pt,
             IProgress<DownloadProgress> progress, ICrawlerService crawlerService, IWebRequestFactory webRequestFactory, ISharedCookieService cookieService, IDownloader downloader, BlockingCollection<TumblrPost> producerConsumerCollection, IBlog blog)
-            : base(shellService, ct, pt, progress, crawlerService, webRequestFactory, cookieService, downloader, producerConsumerCollection, blog)
+            : base(shellService, ct, progress, webRequestFactory, cookieService, producerConsumerCollection, blog)
         {
+            this.crawlerService = crawlerService;
+            this.downloader = downloader;
+            this.pt = pt;
         }
 
         public override async Task IsBlogOnlineAsync()
@@ -133,10 +139,7 @@ namespace TumblThree.Applications.Downloader
 
             producerConsumerCollection.CompleteAdding();
 
-            //if (!ct.IsCancellationRequested)
-            //{
-                UpdateBlogStats();
-            //}
+            UpdateBlogStats();
         }
 
         private async Task UpdateAuthentication()
