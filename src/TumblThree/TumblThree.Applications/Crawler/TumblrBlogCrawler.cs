@@ -126,6 +126,11 @@ namespace TumblThree.Applications.Downloader
                         string document = await RequestDataAsync(blog.Url + "page/" + crawlerNumber).TimeoutAfter(shellService.Settings.TimeOut); ;
                         await AddUrlsToDownloadList(document, crawlerNumber);
                     }
+                    catch (TimeoutException timeoutException)
+                    {
+                        Logger.Error("TumblrBlogCrawler:GetUrls:WebException {0}", timeoutException);
+                        shellService.ShowError(timeoutException, Resources.TimeoutReached, Resources.Crawling, blog.Name);
+                    }
                     catch
                     {
                     }
