@@ -119,6 +119,7 @@ namespace TumblThree.Applications.Controllers
             ManagerViewModel.QueueItems = QueueManager.Items;
             QueueManager.Items.CollectionChanged += QueueItemsCollectionChanged;
             ManagerViewModel.QueueItems.CollectionChanged += ManagerViewModel.QueueItemsCollectionChanged;
+            BlogManaerFinishedLoadingDatabases += OnBlogManagerFinishedLoadingDatabases;
 
             shellService.ContentView = ManagerViewModel.View;
 
@@ -479,7 +480,7 @@ namespace TumblThree.Applications.Controllers
                 return;
             }
 
-            if (await TumblrBlogDetector.IsHiddenTumblrBlog(blog.Url))
+            if (blog.GetType() == typeof(TumblrBlog) && await TumblrBlogDetector.IsHiddenTumblrBlog(blog.Url))
             {
                 blog = PromoteTumblrBlogToHiddenBlog(blog);
             }
@@ -513,7 +514,7 @@ namespace TumblThree.Applications.Controllers
         private IBlog PromoteTumblrBlogToHiddenBlog(IBlog blog)
         {
             RemoveBlog(new[] { blog } );
-            blog = TumblrHiddenBlog.Create(blog.Url, Path.Combine(shellService.Settings.DownloadLocation, "Index"));
+            blog = TumblrHiddenBlog.Create("https://www.tumblr.com/dashboard/blog/" + blog.Name, Path.Combine(shellService.Settings.DownloadLocation, "Index"));
             return blog;
         }
 
