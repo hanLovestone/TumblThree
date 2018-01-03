@@ -31,8 +31,8 @@ namespace TumblThree.Applications.Downloader
         private string authentication = string.Empty;
 
         public TumblrBlogCrawler(IShellService shellService, CancellationToken ct, PauseToken pt,
-            IProgress<DownloadProgress> progress, ICrawlerService crawlerService, IWebRequestFactory webRequestFactory, ISharedCookieService cookieService, IDownloader downloader, BlockingCollection<TumblrPost> producerConsumerCollection, IBlog blog)
-            : base(shellService, ct, progress, webRequestFactory, cookieService, producerConsumerCollection, blog)
+            IProgress<DownloadProgress> progress, ICrawlerService crawlerService, IWebRequestFactory webRequestFactory, ISharedCookieService cookieService, IDownloader downloader, IPostQueue<TumblrPost> postQueue, IBlog blog)
+            : base(shellService, ct, progress, webRequestFactory, cookieService, postQueue, blog)
         {
             this.crawlerService = crawlerService;
             this.downloader = downloader;
@@ -142,7 +142,7 @@ namespace TumblThree.Applications.Downloader
             }
             await Task.WhenAll(trackedTasks);
 
-            producerConsumerCollection.CompleteAdding();
+            postQueue.CompleteAdding();
 
             UpdateBlogStats();
         }
