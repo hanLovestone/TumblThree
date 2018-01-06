@@ -83,6 +83,7 @@
     <Compile Include="Parser\TumblrApiJsonToJson.cs" />
     <Compile Include="Parser\TumblrApiJsonToText.cs" />
     <Compile Include="Parser\TumblrParser.cs" />
+    <Compile Include="Parser\TumblrSvcJsonToJson.cs" />
     <Compile Include="Parser\WebmshareParser.cs" />
     <Compile Include="Downloader\WebRequestFactory.cs" />
     <Compile Include="DataModels\DownloadProgress.cs" />
