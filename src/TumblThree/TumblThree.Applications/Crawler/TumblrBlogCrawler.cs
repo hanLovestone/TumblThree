@@ -28,7 +28,7 @@ namespace TumblThree.Applications.Downloader
         private readonly ICrawlerService crawlerService;
         private readonly IDownloader downloader;
         private readonly PauseToken pt;
-        private string authentication = string.Empty;
+        private string passwordAuthentication = string.Empty;
 
         public TumblrBlogCrawler(IShellService shellService, CancellationToken ct, PauseToken pt,
             IProgress<DownloadProgress> progress, ICrawlerService crawlerService, IWebRequestFactory webRequestFactory, ISharedCookieService cookieService, IDownloader downloader, IPostQueue<TumblrPost> postQueue, IBlog blog)
@@ -44,10 +44,9 @@ namespace TumblThree.Applications.Downloader
             try
             {
                 blog.Online = true;
-                await UpdateAuthentication();
-                string document = await RequestDataAsync(blog.Url);
-                CheckIfPasswordProtecedBlog(document);
-                CheckIfHiddenBlog(document);
+                string document = await RequestDataAsync(blog.Url, "https://www.tumblr.com/");
+                if (CheckIfPasswordProtecedBlog(document))
+                    await UpdateAuthenticationWithPassword();
             }
             catch (WebException)
             {
@@ -55,24 +54,15 @@ namespace TumblThree.Applications.Downloader
             }
         }
 
-        private void CheckIfPasswordProtecedBlog(string document)
+        private bool CheckIfPasswordProtecedBlog(string document)
         {
             if (Regex.IsMatch(document, "<form id=\"auth_password\" method=\"post\">"))
             {
                 Logger.Error("TumblrBlogCrawler:IsBlogOnlineAsync:PasswordProtectedBlog {0}", Resources.PasswordProtected, blog.Name);
                 shellService.ShowError(new WebException(), Resources.PasswordProtected, blog.Name);
+                return true;
             }
-        }
-
-        private void CheckIfHiddenBlog(string document)
-        {
-            if (Regex.IsMatch(document, "/login_required/"))
-            {
-                Logger.Error("TumblrBlogCrawler:IsBlogOnlineAsync:NotLoggedIn {0}", Resources.NotLoggedIn, blog.Name);
-                shellService.ShowError(new WebException(), Resources.NotLoggedIn, blog.Name);
-                blog.Online = true;
-                blog.BlogType = BlogTypes.tmblrpriv;
-            }
+            return false;
         }
 
         public async Task Crawl()
@@ -123,7 +113,7 @@ namespace TumblThree.Applications.Downloader
 
                     try
                     {
-                        string document = await RequestDataAsync(blog.Url + "page/" + crawlerNumber).TimeoutAfter(shellService.Settings.TimeOut); ;
+                        string document = await RequestDataAsync(blog.Url + "page/" + crawlerNumber, "https://www.tumblr.com/").TimeoutAfter(shellService.Settings.TimeOut); ;
                         await AddUrlsToDownloadList(document, crawlerNumber);
                     }
                     catch (TimeoutException timeoutException)
@@ -147,10 +137,10 @@ namespace TumblThree.Applications.Downloader
             UpdateBlogStats();
         }
 
-        private async Task UpdateAuthentication()
+        private async Task UpdateAuthenticationWithPassword()
         {
             string document = await ThrottleAsync(Authenticate).TimeoutAfter(shellService.Settings.TimeOut);
-            authentication = ExtractAuthenticationKey(document);
+            passwordAuthentication = ExtractAuthenticationKey(document);
             await UpdateCookieWithAuthentication().TimeoutAfter(shellService.Settings.TimeOut);
         }
 
@@ -207,7 +197,7 @@ namespace TumblThree.Applications.Downloader
                 HttpWebRequest request = webRequestFactory.CreatePostReqeust(url, referer, headers);
                 cookieService.GetUriCookie(request.CookieContainer, new Uri("https://www.tumblr.com/"));
                 cookieService.GetUriCookie(request.CookieContainer, new Uri("https://" + blog.Name.Replace("+", "-") + ".tumblr.com"));
-                string requestBody = "auth=" + authentication;
+                string requestBody = "auth=" + passwordAuthentication;
                 using (Stream postStream = await request.GetRequestStreamAsync())
                 {
                     byte[] postBytes = Encoding.ASCII.GetBytes(requestBody);
@@ -245,7 +235,7 @@ namespace TumblThree.Applications.Downloader
 
                 Interlocked.Increment(ref numberOfPagesCrawled);
                 UpdateProgressQueueInformation(Resources.ProgressGetUrlShort, numberOfPagesCrawled);
-                document = await RequestDataAsync(blog.Url + "page/" + crawlerNumber);
+                document = await RequestDataAsync(blog.Url + "page/" + crawlerNumber, "https://www.tumblr.com/");
                 if (!document.Contains((crawlerNumber + 1).ToString()))
                 {
                     return;
