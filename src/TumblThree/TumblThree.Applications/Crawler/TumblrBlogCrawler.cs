@@ -44,7 +44,7 @@ namespace TumblThree.Applications.Downloader
             try
             {
                 blog.Online = true;
-                string document = await RequestDataAsync(blog.Url, "https://www.tumblr.com/");
+                string document = await RequestDataAsync(blog.Url, "https://www.tumblr.com/", "https://" + blog.Name.Replace("+", "-") + ".tumblr.com");
                 if (CheckIfPasswordProtecedBlog(document))
                     await UpdateAuthenticationWithPassword();
             }
