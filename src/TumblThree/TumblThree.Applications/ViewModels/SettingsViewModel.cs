@@ -23,6 +23,7 @@ namespace TumblThree.Applications.ViewModels
         private readonly IFolderBrowserDialog folderBrowserDialog;
         private readonly IFileDialogService fileDialogService;
         private readonly DelegateCommand authenticateCommand;
+        private readonly DelegateCommand tumblrLoginCommand;
         private readonly ExportFactory<AuthenticateViewModel> authenticateViewModelFactory;
         private readonly DelegateCommand browseDownloadLocationCommand;
         private readonly DelegateCommand enableAutoDownloadCommand;
@@ -107,10 +108,12 @@ namespace TumblThree.Applications.ViewModels
         private string timerInterval;
         private int videoSize;
         private int settingsTabIndex;
+        private string tumblrUser = string.Empty;
+        private string tumblrPassword = string.Empty;
 
         [ImportingConstructor]
         public SettingsViewModel(ISettingsView view, IShellService shellService, ICrawlerService crawlerService,
-            IManagerService managerService, IFolderBrowserDialog folderBrowserDialog, IFileDialogService fileDialogService,
+            IManagerService managerService, ILoginService loginService, IFolderBrowserDialog folderBrowserDialog, IFileDialogService fileDialogService,
             ExportFactory<AuthenticateViewModel> authenticateViewModelFactory)
             : base(view)
         {
@@ -120,10 +123,12 @@ namespace TumblThree.Applications.ViewModels
             settings = ShellService.Settings;
             CrawlerService = crawlerService;
             ManagerService = managerService;
+            LoginService = loginService;
             this.authenticateViewModelFactory = authenticateViewModelFactory;
             browseDownloadLocationCommand = new DelegateCommand(BrowseDownloadLocation);
             browseExportLocationCommand = new DelegateCommand(BrowseExportLocation);
             authenticateCommand = new DelegateCommand(Authenticate);
+            tumblrLoginCommand = new DelegateCommand(TumblrLogin);
             saveCommand = new DelegateCommand(Save);
             enableAutoDownloadCommand = new DelegateCommand(EnableAutoDownload);
             exportCommand = new DelegateCommand(ExportBlogs);
@@ -140,6 +145,8 @@ namespace TumblThree.Applications.ViewModels
 
         public IManagerService ManagerService { get; }
 
+        public ILoginService LoginService { get; }
+
         public ICommand BrowseDownloadLocationCommand
         {
             get { return browseDownloadLocationCommand; }
@@ -148,6 +155,11 @@ namespace TumblThree.Applications.ViewModels
         public ICommand AuthenticateCommand
         {
             get { return authenticateCommand; }
+        }
+
+        public ICommand TumblrLoginCommand
+        {
+            get { return tumblrLoginCommand; }
         }
 
         public ICommand SaveCommand
@@ -620,6 +632,18 @@ namespace TumblThree.Applications.ViewModels
             set { SetProperty(ref settingsTabIndex, value); }
         }
 
+        public string TumblrUser
+        {
+            get { return tumblrUser; }
+            set { SetProperty(ref tumblrUser, value); }
+        }
+
+        public string TumblrPassword
+        {
+            get { return tumblrPassword; }
+            set { SetProperty(ref tumblrPassword, value); }
+        }
+
         public void ShowDialog(object owner)
         {
             ViewCore.ShowDialog(owner);
@@ -715,6 +739,11 @@ namespace TumblThree.Applications.ViewModels
                 ShellService.ShowError(ex, Resources.AuthenticationFailure, ex.Message);
                 return;
             }
+        }
+
+        private void TumblrLogin()
+        {
+            LoginService.PerformTumblrLogin(TumblrUser, TumblrPassword);
         }
 
         public void Load()
