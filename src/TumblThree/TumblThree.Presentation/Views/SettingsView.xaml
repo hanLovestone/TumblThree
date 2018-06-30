@@ -226,6 +226,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Grid MinHeight="46" Height="Auto" Grid.Row="0">
                             <Grid.ColumnDefinitions>
@@ -490,6 +491,23 @@
                             </TextBox>
                         </Grid>
                         <Grid MinHeight="46" Height="Auto" Grid.Row="7" HorizontalAlignment="Left">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Label x:Name="UserAgentLabel" Grid.Column="0" Content="{x:Static p:Resources.UserAgent}"
+                       VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10">
+                            </Label>
+                            <TextBox x:Name="UserAgentTextBox" Grid.Column="3" HorizontalAlignment="Left"
+                         VerticalAlignment="Center" MinWidth="160">
+                                <TextBox.Text>
+                                    <Binding Path="UserAgent" UpdateSourceTrigger="PropertyChanged">
+                                    </Binding>
+                                </TextBox.Text>
+                            </TextBox>
+                        </Grid>
+                        <Grid MinHeight="46" Height="Auto" Grid.Row="8" HorizontalAlignment="Left">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
@@ -1140,9 +1158,9 @@
                     <Button.ToolTip>
                         <ToolTip>
                             <StackPanel>
-                                <TextBlock FontWeight="Bold" Text="{x:Static p:Resources.ToolTipAuthenticate}" />
+                                <TextBlock FontWeight="Bold" Text="{x:Static p:Resources.ToolTipAuthenticateBrowser}" />
                                 <TextBlock xml:space="preserve"
-                                           Text="{x:Static p:Resources.ToolTipAuthenticateDescription}" />
+                                           Text="{x:Static p:Resources.ToolTipAuthenticateBrowserDescription}" />
                             </StackPanel>
                         </ToolTip>
                     </Button.ToolTip>
