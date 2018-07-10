@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -50,6 +49,12 @@ namespace TumblThree.Applications.Downloader
             }
             catch (WebException)
             {
+                blog.Online = false;
+            }
+            catch (TimeoutException timeoutException)
+            {
+                Logger.Error("TumblrBlogCrawler:CheckIfLoggedIn:WebException {0}", timeoutException);
+                shellService.ShowError(timeoutException, Resources.TimeoutReached, Resources.OnlineChecking, blog.Name);
                 blog.Online = false;
             }
         }
@@ -113,7 +118,7 @@ namespace TumblThree.Applications.Downloader
 
                     try
                     {
-                        string document = await RequestDataAsync(blog.Url + "page/" + crawlerNumber, "https://www.tumblr.com/").TimeoutAfter(shellService.Settings.TimeOut); ;
+                        string document = await RequestDataAsync(blog.Url + "page/" + crawlerNumber, "https://www.tumblr.com/");
                         await AddUrlsToDownloadList(document, crawlerNumber);
                     }
                     catch (TimeoutException timeoutException)
