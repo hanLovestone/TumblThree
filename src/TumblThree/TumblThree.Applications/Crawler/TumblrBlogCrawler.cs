@@ -103,6 +103,12 @@ namespace TumblThree.Applications.Crawler
                 shellService.ShowError(webException, Resources.BlogIsOffline, blog.Name);
                 blog.Online = false;
             }
+            catch (TimeoutException timeoutException)
+            {
+                Logger.Error("TumblrBlogCrawler:CheckIfLoggedIn:WebException {0}", timeoutException);
+                shellService.ShowError(timeoutException, Resources.TimeoutReached, Resources.OnlineChecking, blog.Name);
+                blog.Online = false;
+            }
         }
 
         public override async Task UpdateMetaInformationAsync()
@@ -230,9 +236,9 @@ namespace TumblThree.Applications.Crawler
             if (shellService.Settings.LimitConnections)
             {
                 crawlerService.Timeconstraint.Acquire();
-                return await RequestDataAsync(url, "https://www.tumblr.com/", "https://" + blog.Name.Replace("+", "-") + ".tumblr.com").TimeoutAfter(shellService.Settings.TimeOut);
+                return await RequestDataAsync(url, "https://www.tumblr.com/", "https://" + blog.Name.Replace("+", "-") + ".tumblr.com");
             }
-            return await RequestDataAsync(url, "https://www.tumblr.com/", "https://" + blog.Name.Replace("+", "-") + ".tumblr.com").TimeoutAfter(shellService.Settings.TimeOut);
+            return await RequestDataAsync(url, "https://www.tumblr.com/", "https://" + blog.Name.Replace("+", "-") + ".tumblr.com");
         }
 
         private async Task UpdateTotalPostCountAsync()
@@ -249,6 +255,12 @@ namespace TumblThree.Applications.Crawler
                     Logger.Error("TumblrBlogCrawler:UpdateTotalPostCountAsync:WebException {0}", webException);
                     shellService.ShowError(webException, Resources.LimitExceeded, blog.Name);
                 }
+                blog.Posts = 0;
+            }
+            catch (TimeoutException timeoutException)
+            {
+                Logger.Error("TumblrBlogCrawler:CheckIfLoggedIn:WebException {0}", timeoutException);
+                shellService.ShowError(timeoutException, Resources.TimeoutReached, Resources.Crawling, blog.Name);
                 blog.Posts = 0;
             }
         }
@@ -275,6 +287,12 @@ namespace TumblThree.Applications.Crawler
                     Logger.Error("TumblrBlogCrawler:GetHighestPostIdAsync:WebException {0}", webException);
                     shellService.ShowError(webException, Resources.LimitExceeded, blog.Name);
                 }
+                return 0;
+            }
+            catch (TimeoutException timeoutException)
+            {
+                Logger.Error("TumblrBlogCrawler:CheckIfLoggedIn:WebException {0}", timeoutException);
+                shellService.ShowError(timeoutException, Resources.TimeoutReached, Resources.Crawling, blog.Name);
                 return 0;
             }
         }

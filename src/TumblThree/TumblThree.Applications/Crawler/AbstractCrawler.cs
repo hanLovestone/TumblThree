@@ -64,6 +64,12 @@ namespace TumblThree.Applications.Crawler
                 shellService.ShowError(webException, Resources.BlogIsOffline, blog.Name);
                 blog.Online = false;
             }
+            catch (TimeoutException timeoutException)
+            {
+                Logger.Error("TumblrBlogCrawler:CheckIfLoggedIn:WebException {0}", timeoutException);
+                shellService.ShowError(timeoutException, Resources.TimeoutReached, Resources.OnlineChecking, blog.Name);
+                blog.Online = false;
+            }
         }
 
         public void UpdateProgressQueueInformation(string format, params object[] args)

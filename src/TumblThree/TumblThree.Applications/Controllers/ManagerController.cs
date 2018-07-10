@@ -203,8 +203,7 @@ namespace TumblThree.Applications.Controllers
                     {
                         await semaphoreSlim.WaitAsync();
                         ICrawler crawler = CrawlerFactory.GetCrawler(blog, new CancellationToken(), new PauseToken(),
-                            new Progress<DownloadProgress>(), shellService,
-                            crawlerService, managerService);
+                            new Progress<DownloadProgress>(), shellService, crawlerService, managerService);
                         await crawler.IsBlogOnlineAsync();
                         semaphoreSlim.Release();
                     });
