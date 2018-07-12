@@ -22,18 +22,16 @@ namespace TumblThree.Applications.Downloader
 {
     [Export(typeof(IDownloader))]
     [ExportMetadata("BlogType", typeof(TumblrBlog))]
-    public class TumblrBlogCrawler : AbstractCrawler, ICrawler
+    public class TumblrBlogCrawler : TumblrAbstractCrawler, ICrawler
     {
-        private readonly ICrawlerService crawlerService;
         private readonly IDownloader downloader;
         private readonly PauseToken pt;
         private string passwordAuthentication = string.Empty;
 
         public TumblrBlogCrawler(IShellService shellService, CancellationToken ct, PauseToken pt,
             IProgress<DownloadProgress> progress, ICrawlerService crawlerService, IWebRequestFactory webRequestFactory, ISharedCookieService cookieService, IDownloader downloader, IPostQueue<TumblrPost> postQueue, IBlog blog)
-            : base(shellService, ct, progress, webRequestFactory, cookieService, postQueue, blog)
+            : base(shellService, crawlerService, ct, progress, webRequestFactory, cookieService, postQueue, blog)
         {
-            this.crawlerService = crawlerService;
             this.downloader = downloader;
             this.pt = pt;
         }
@@ -53,7 +51,7 @@ namespace TumblThree.Applications.Downloader
             }
             catch (TimeoutException timeoutException)
             {
-                Logger.Error("TumblrBlogCrawler:CheckIfLoggedIn:WebException {0}", timeoutException);
+                Logger.Error("TumblrBlogCrawler:IsBlogOnlineAsync:WebException {0}", timeoutException);
                 shellService.ShowError(timeoutException, Resources.TimeoutReached, Resources.OnlineChecking, blog.Name);
                 blog.Online = false;
             }
@@ -63,16 +61,16 @@ namespace TumblThree.Applications.Downloader
         {
             if (Regex.IsMatch(document, "<form id=\"auth_password\" method=\"post\">"))
             {
-                Logger.Error("TumblrBlogCrawler:IsBlogOnlineAsync:PasswordProtectedBlog {0}", Resources.PasswordProtected, blog.Name);
+                Logger.Error("TumblrBlogCrawler:CheckIfPasswordProtecedBlog:PasswordProtectedBlog {0}", Resources.PasswordProtected, blog.Name);
                 shellService.ShowError(new WebException(), Resources.PasswordProtected, blog.Name);
                 return true;
             }
             return false;
         }
 
-        public async Task Crawl()
+        public async Task CrawlAsync()
         {
-            Logger.Verbose("TumblrBlogCrawler.Crawl:Start");
+            Logger.Verbose("TumblrBlogCrawler.CrawlAsync:Start");
 
             Task grabber = GetUrlsAsync();
             Task<bool> download = downloader.DownloadBlogAsync();
@@ -123,7 +121,7 @@ namespace TumblThree.Applications.Downloader
                     }
                     catch (TimeoutException timeoutException)
                     {
-                        Logger.Error("TumblrBlogCrawler:GetUrls:WebException {0}", timeoutException);
+                        Logger.Error("TumblrBlogCrawler:GetUrlsAsync:WebException {0}", timeoutException);
                         shellService.ShowError(timeoutException, Resources.TimeoutReached, Resources.Crawling, blog.Name);
                     }
                     catch
@@ -144,26 +142,17 @@ namespace TumblThree.Applications.Downloader
 
         private async Task UpdateAuthenticationWithPassword()
         {
-            string document = await ThrottleAsync(Authenticate).TimeoutAfter(shellService.Settings.TimeOut);
+            string url = "https://www.tumblr.com/blog_auth/" + blog.Name;
+            string document = await ThrottleConnectionAsync(url, Authenticate).TimeoutAfter(shellService.Settings.TimeOut);
             passwordAuthentication = ExtractAuthenticationKey(document);
             await UpdateCookieWithAuthentication().TimeoutAfter(shellService.Settings.TimeOut);
         }
 
-        private async Task<T> ThrottleAsync<T>(Func<Task<T>> method)
-        {
-            if (shellService.Settings.LimitConnections)
-            {
-                return await method();
-            }
-            return await method();
-        }
-
-        protected async Task<string> Authenticate()
+        protected async Task<string> Authenticate(string url)
         {
             var requestRegistration = new CancellationTokenRegistration();
             try
             {
-                string url = "https://www.tumblr.com/blog_auth/" + blog.Name;
                 var headers = new Dictionary<string, string>();
                 HttpWebRequest request = webRequestFactory.CreatePostReqeust(url, url, headers);
                 cookieService.GetUriCookie(request.CookieContainer, new Uri("https://www.tumblr.com/"));
