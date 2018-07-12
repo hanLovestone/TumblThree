@@ -69,6 +69,7 @@
     <Compile Include="Controllers\ManagerController.cs" />
     <Compile Include="Controllers\ModuleController.cs" />
     <Compile Include="Controllers\QueueController.cs" />
+    <Compile Include="Crawler\TumblrAbstractCrawler.cs" />
     <Compile Include="DataModels\TumblrApiJson.cs" />
     <Compile Include="DataModels\TumblrCrawlerData\TumblrCrawlerData.cs" />
     <Compile Include="Downloader\TumblrJsonDownloader.cs" />
@@ -229,7 +230,9 @@
     <EmbeddedResource Include="Properties\Resources.es.resx" />
     <EmbeddedResource Include="Properties\Resources.fi.resx" />
     <EmbeddedResource Include="Properties\Resources.fr.resx" />
-    <EmbeddedResource Include="Properties\Resources.he.resx" />
+    <EmbeddedResource Include="Properties\Resources.he.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.hi.resx" />
     <EmbeddedResource Include="Properties\Resources.it.resx" />
     <EmbeddedResource Include="Properties\Resources.ja.resx" />

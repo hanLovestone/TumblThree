@@ -5,8 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Runtime.Serialization.Json;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +14,6 @@ using TumblThree.Applications.DataModels.TumblrApiJson;
 using TumblThree.Applications.DataModels.TumblrCrawlerData;
 using TumblThree.Applications.DataModels.TumblrPosts;
 using TumblThree.Applications.Downloader;
-using TumblThree.Applications.Extensions;
 using TumblThree.Applications.Parser;
 using TumblThree.Applications.Properties;
 using TumblThree.Applications.Services;
@@ -27,9 +24,8 @@ namespace TumblThree.Applications.Crawler
 {
     [Export(typeof(ICrawler))]
     [ExportMetadata("BlogType", typeof(TumblrBlog))]
-    public class TumblrBlogCrawler : AbstractCrawler, ICrawler
+    public class TumblrBlogCrawler : TumblrAbstractCrawler, ICrawler
     {
-        private readonly ICrawlerService crawlerService;
         private readonly IDownloader downloader;
         private readonly PauseToken pt;
         private readonly ITumblrToTextParser<Post> tumblrJsonParser;
@@ -50,9 +46,8 @@ namespace TumblThree.Applications.Crawler
             IImgurParser imgurParser, IGfycatParser gfycatParser, IWebmshareParser webmshareParser, IMixtapeParser mixtapeParser,
             IUguuParser uguuParser, ISafeMoeParser safemoeParser, ILoliSafeParser lolisafeParser, ICatBoxParser catboxParser,
             IPostQueue<TumblrPost> postQueue, IPostQueue<TumblrCrawlerData<Post>> jsonQueue, IBlog blog)
-            : base(shellService, ct, progress, webRequestFactory, cookieService, postQueue, blog)
+            : base(shellService, crawlerService, ct, progress, webRequestFactory, cookieService, postQueue, blog)
         {
-            this.crawlerService = crawlerService;
             this.downloader = downloader;
             this.pt = pt;
             this.tumblrJsonParser = tumblrJsonParser;
@@ -87,10 +82,7 @@ namespace TumblThree.Applications.Crawler
                         blog.Online = true;
                         return;
                     }
-                }
-                if (webException.Status == WebExceptionStatus.ProtocolError && webException.Response != null)
-                {
-                    var resp = (HttpWebResponse)webException.Response;
+                    // 429: Too Many Requests
                     if ((int)resp.StatusCode == 429)
                     {
                         Logger.Error("TumblrBlogCrawler:IsBlogOnlineAsync:WebException {0}", webException);
@@ -105,7 +97,7 @@ namespace TumblThree.Applications.Crawler
             }
             catch (TimeoutException timeoutException)
             {
-                Logger.Error("TumblrBlogCrawler:CheckIfLoggedIn:WebException {0}", timeoutException);
+                Logger.Error("TumblrBlogCrawler:IsBlogOnlineAsync:WebException {0}", timeoutException);
                 shellService.ShowError(timeoutException, Resources.TimeoutReached, Resources.OnlineChecking, blog.Name);
                 blog.Online = false;
             }
@@ -119,8 +111,8 @@ namespace TumblThree.Applications.Crawler
             }
             catch (WebException webException)
             {
-                var webRespStatusCode = (int)((HttpWebResponse)webException?.Response).StatusCode;
-                if (webRespStatusCode == 429)
+                var resp = (HttpWebResponse)webException.Response;
+                if (resp.StatusCode == HttpStatusCode.ServiceUnavailable)
                 {
                     Logger.Error("TumblrBlogCrawler:UpdateMetaInformationAsync:WebException {0}", webException);
                     shellService.ShowError(webException, Resources.LimitExceeded, blog.Name);
@@ -141,31 +133,7 @@ namespace TumblThree.Applications.Crawler
             }
         }
 
-        public new T ConvertJsonToClass<T>(string json) where T : new()
-        {
-            if (json.Contains("tumblr_api_read"))
-            {
-                int jsonStart = json.IndexOf("{");
-                json = json.Substring(jsonStart);
-                json = json.Remove(json.Length - 2);
-            }
-            try
-            {
-                using (MemoryStream ms = new MemoryStream(Encoding.Unicode.GetBytes(json)))
-                {
-                    DataContractJsonSerializer serializer = new DataContractJsonSerializer((typeof(T)));
-                    return (T)serializer.ReadObject(ms);
-                }
-            }
-            catch (System.Runtime.Serialization.SerializationException serializationException)
-            {
-                Logger.Error("TumblrBlogCrawler:ConvertJsonToClass<T>: {0}", "Could not parse data");
-                shellService.ShowError(serializationException, Resources.PostNotParsable, blog.Name);
-                return new T();
-            }
-        }
-
-        public async Task Crawl()
+        public async Task CrawlAsync()
         {
             Logger.Verbose("TumblrBlogCrawler.Crawl:Start");
 
@@ -205,6 +173,17 @@ namespace TumblThree.Applications.Crawler
             blog.Save();
 
             UpdateProgressQueueInformation("");
+        }
+
+        public override T ConvertJsonToClass<T>(string json)
+        {
+            if (json.Contains("tumblr_api_read"))
+            {
+                int jsonStart = json.IndexOf("{");
+                json = json.Substring(jsonStart);
+                json = json.Remove(json.Length - 2);
+            }
+            return base.ConvertJsonToClass<T>(json);
         }
 
         private string GetApiUrl(string url, int count, int start = 0)
@@ -249,6 +228,7 @@ namespace TumblThree.Applications.Crawler
             }
             catch (WebException webException)
             {
+                // 429: Too Many Requests
                 var webRespStatusCode = (int)((HttpWebResponse)webException?.Response).StatusCode;
                 if (webRespStatusCode == 429)
                 {
@@ -259,7 +239,7 @@ namespace TumblThree.Applications.Crawler
             }
             catch (TimeoutException timeoutException)
             {
-                Logger.Error("TumblrBlogCrawler:CheckIfLoggedIn:WebException {0}", timeoutException);
+                Logger.Error("TumblrBlogCrawler:UpdateTotalPostCountAsync:WebException {0}", timeoutException);
                 shellService.ShowError(timeoutException, Resources.TimeoutReached, Resources.Crawling, blog.Name);
                 blog.Posts = 0;
             }
@@ -281,6 +261,7 @@ namespace TumblThree.Applications.Crawler
             }
             catch (WebException webException)
             {
+                // 429: Too Many Requests
                 var webRespStatusCode = (int)((HttpWebResponse)webException?.Response).StatusCode;
                 if (webRespStatusCode == 429)
                 {
@@ -291,7 +272,7 @@ namespace TumblThree.Applications.Crawler
             }
             catch (TimeoutException timeoutException)
             {
-                Logger.Error("TumblrBlogCrawler:CheckIfLoggedIn:WebException {0}", timeoutException);
+                Logger.Error("TumblrBlogCrawler:GetHighestPostIdAsync:WebException {0}", timeoutException);
                 shellService.ShowError(timeoutException, Resources.TimeoutReached, Resources.Crawling, blog.Name);
                 return 0;
             }
@@ -373,14 +354,14 @@ namespace TumblThree.Applications.Crawler
                         if (webRespStatusCode == 429)
                         {
                             incompleteCrawl = true;
-                            Logger.Error("TumblrBlogCrawler:GetUrls:WebException {0}", webException);
+                            Logger.Error("TumblrBlogCrawler:GetUrlsAsync:WebException {0}", webException);
                             shellService.ShowError(webException, Resources.LimitExceeded, blog.Name);
                         }
                     }
                     catch (TimeoutException timeoutException)
                     {
                         incompleteCrawl = true;
-                        Logger.Error("TumblrBlogCrawler:GetUrls:WebException {0}", timeoutException);
+                        Logger.Error("TumblrBlogCrawler:GetUrlsAsync:WebException {0}", timeoutException);
                         shellService.ShowError(timeoutException, Resources.TimeoutReached, Resources.Crawling, blog.Name);
                     }
                     catch
