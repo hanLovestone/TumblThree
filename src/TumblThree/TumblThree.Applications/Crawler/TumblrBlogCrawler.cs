@@ -122,15 +122,16 @@ namespace TumblThree.Applications.Crawler
 
         private async Task UpdateMetaInformation()
         {
-            if (blog.Online)
+            if (!blog.Online)
             {
-                string document = await GetApiPageAsync(0);
-                var response = ConvertJsonToClass<TumblrApiJson>(document);
-
-                blog.Title =  response.tumblelog?.title;
-                blog.Description = response.tumblelog?.description;
-                blog.TotalCount = response.posts_total;
+                return;
             }
+            string document = await GetApiPageAsync(0);
+            var response = ConvertJsonToClass<TumblrApiJson>(document);
+
+            blog.Title =  response.tumblelog?.title;
+            blog.Description = response.tumblelog?.description;
+            blog.TotalCount = response.posts_total;
         }
 
         public async Task CrawlAsync()
@@ -188,7 +189,7 @@ namespace TumblThree.Applications.Crawler
 
         private string GetApiUrl(string url, int count, int start = 0)
         {
-            if (url.Last<char>() != '/')
+            if (url.Last() != '/')
             {
                 url += "/api/read/json?debug=1&";
             }

@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
+
 using TumblThree.Applications.DataModels;
 using TumblThree.Applications.DataModels.TumblrCrawlerData;
 using TumblThree.Applications.Downloader;
@@ -18,14 +19,16 @@ namespace TumblThree.Applications.Crawler
     [Export(typeof(ICrawlerFactory))]
     public class CrawlerFactory : ICrawlerFactory
     {
-        private readonly AppSettings settings;
+        private readonly IShellService shellService;
         private readonly ISharedCookieService cookieService;
+        private readonly AppSettings settings;
 
         [ImportingConstructor]
         internal CrawlerFactory(ShellService shellService, ISharedCookieService cookieService)
         {
-            this.settings = shellService.Settings;
+            this.shellService = shellService;
             this.cookieService = cookieService;
+            this.settings = shellService.Settings;
         }
 
         [ImportMany(typeof(ICrawler))]
@@ -80,7 +83,7 @@ namespace TumblThree.Applications.Crawler
 
         private IWebRequestFactory GetWebRequestFactory()
         {
-            return new WebRequestFactory(settings);
+            return new WebRequestFactory(shellService, cookieService, settings);
         }
 
         private IImgurParser GetImgurParser(IWebRequestFactory webRequestFactory, CancellationToken ct)

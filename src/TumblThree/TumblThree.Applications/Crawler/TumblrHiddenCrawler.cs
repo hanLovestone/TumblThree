@@ -5,7 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +15,6 @@ using TumblThree.Applications.Properties;
 using TumblThree.Applications.Services;
 using TumblThree.Domain;
 using TumblThree.Domain.Models;
-using TumblThree.Applications.Extensions;
 using TumblThree.Applications.Parser;
 using TumblThree.Applications.DataModels.TumblrPosts;
 using TumblThree.Applications.DataModels.TumblrCrawlerData;
@@ -179,32 +177,6 @@ namespace TumblThree.Applications.Crawler
             blog.Save();
 
             UpdateProgressQueueInformation("");
-        }
-
-        protected async Task<string> Authenticate(string url)
-        {
-            var requestRegistration = new CancellationTokenRegistration();
-            try
-            {
-                var headers = new Dictionary<string, string>();
-                HttpWebRequest request = webRequestFactory.CreatePostReqeust(url, url, headers);
-                cookieService.GetUriCookie(request.CookieContainer, new Uri("https://www.tumblr.com/"));
-                cookieService.GetUriCookie(request.CookieContainer, new Uri("https://" + blog.Name.Replace("+", "-") + ".tumblr.com"));
-                string requestBody = "password=" + blog.Password;
-                using (Stream postStream = await request.GetRequestStreamAsync())
-                {
-                    byte[] postBytes = Encoding.ASCII.GetBytes(requestBody);
-                    await postStream.WriteAsync(postBytes, 0, postBytes.Length);
-                    await postStream.FlushAsync();
-                }
-
-                requestRegistration = ct.Register(() => request.Abort());
-                return await webRequestFactory.ReadReqestToEnd(request).TimeoutAfter(shellService.Settings.TimeOut);
-            }
-            finally
-            {
-                requestRegistration.Dispose();
-            }
         }
 
         protected override IEnumerable<int> GetPageNumbers()
@@ -398,7 +370,7 @@ namespace TumblThree.Applications.Crawler
                 cookieService.GetUriCookie(request.CookieContainer, new Uri("https://www.tumblr.com/"));
                 cookieService.GetUriCookie(request.CookieContainer, new Uri("https://" + blog.Name.Replace("+", "-") + ".tumblr.com"));
                 requestRegistration = ct.Register(() => request.Abort());
-                return await webRequestFactory.ReadReqestToEnd(request).TimeoutAfter(shellService.Settings.TimeOut);
+                return await webRequestFactory.ReadReqestToEnd(request);
             }
             finally
             {
