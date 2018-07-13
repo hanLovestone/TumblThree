@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +10,6 @@ using System.Threading.Tasks;
 using TumblThree.Applications.Crawler;
 using TumblThree.Applications.DataModels;
 using TumblThree.Applications.DataModels.TumblrPosts;
-using TumblThree.Applications.Extensions;
 using TumblThree.Applications.Properties;
 using TumblThree.Applications.Services;
 using TumblThree.Domain;
@@ -29,7 +26,8 @@ namespace TumblThree.Applications.Downloader
         private string passwordAuthentication = string.Empty;
 
         public TumblrBlogCrawler(IShellService shellService, CancellationToken ct, PauseToken pt,
-            IProgress<DownloadProgress> progress, ICrawlerService crawlerService, IWebRequestFactory webRequestFactory, ISharedCookieService cookieService, IDownloader downloader, IPostQueue<TumblrPost> postQueue, IBlog blog)
+            IProgress<DownloadProgress> progress, ICrawlerService crawlerService, IWebRequestFactory webRequestFactory,
+            ISharedCookieService cookieService, IDownloader downloader, IPostQueue<TumblrPost> postQueue, IBlog blog)
             : base(shellService, crawlerService, ct, progress, webRequestFactory, cookieService, postQueue, blog)
         {
             this.downloader = downloader;
