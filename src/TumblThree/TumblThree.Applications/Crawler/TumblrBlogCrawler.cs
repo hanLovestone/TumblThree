@@ -466,6 +466,11 @@ namespace TumblThree.Applications.Crawler
             return true;
         }
 
+        private bool CheckIfContainsTaggedPost(Post post)
+        {
+            return !tags.Any() || post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase));
+        }
+
         private void AddPhotoUrlToDownloadList(TumblrApiJson document)
         {
             if (blog.DownloadPhoto)
@@ -474,8 +479,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (post.type == "photo" && (!tags.Any() ||
-                        post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase))))
+                    if (post.type == "photo" && CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                         {
@@ -495,7 +499,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (!tags.Any() || post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase)))
+                    if (CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                             AddInlinePhotoUrl(post);
@@ -512,8 +516,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (post.type == "video" && (!tags.Any() ||
-                        post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase))))
+                    if (post.type == "video" && CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                             AddVideoUrl(post);
@@ -525,7 +528,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (!tags.Any() || post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase)))
+                    if (CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                         {
@@ -548,8 +551,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (post.type == "audio" && (!tags.Any() ||
-                        post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase))))
+                    if (post.type == "audio" && CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                             AddAudioUrl(post);
@@ -566,8 +568,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (post.type == "regular" && (!tags.Any() ||
-                        post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase))))
+                    if (post.type == "regular" && CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                         {
@@ -588,8 +589,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (post.type == "quote" && (!tags.Any() ||
-                        post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase))))
+                    if (post.type == "quote" && CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                         {
@@ -610,8 +610,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (post.type == "link" && (!tags.Any() ||
-                        post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase))))
+                    if (post.type == "link" && CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                         {
@@ -632,8 +631,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (post.type == "conversation" && (!tags.Any() ||
-                        post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase))))
+                    if (post.type == "conversation" && CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                         {
@@ -654,8 +652,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (post.type == "answer" && (!tags.Any() ||
-                        post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase))))
+                    if (post.type == "answer" && CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                         {
@@ -676,8 +673,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (post.type == "photo" && (!tags.Any() ||
-                        post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase))))
+                    if (post.type == "photo" && CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                         {
@@ -698,8 +694,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (post.type == "video" && (!tags.Any() ||
-                        post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase))))
+                    if (post.type == "video" && CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                         {
@@ -720,8 +715,7 @@ namespace TumblThree.Applications.Crawler
                 {
                     if (!PostWithinTimeSpan(post))
                         continue;
-                    if (post.type == "audio" && (!tags.Any() ||
-                        post.tags.Any(x => tags.Contains(x, StringComparer.OrdinalIgnoreCase))))
+                    if (post.type == "audio" && CheckIfContainsTaggedPost(post))
                     {
                         if (CheckIfDownloadRebloggedPosts(post))
                         {
