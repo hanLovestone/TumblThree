@@ -55,6 +55,7 @@ namespace TumblThree.Applications.Controllers
         private readonly DelegateCommand showFilesCommand;
         private readonly DelegateCommand visitBlogCommand;
         private readonly DelegateCommand copyUrlCommand;
+        private readonly AsyncDelegateCommand checkStatusCommand;
 
         [ImportingConstructor]
         public ManagerController(IShellService shellService, ISelectionService selectionService, ICrawlerService crawlerService, ISettingsService settingsService, IClipboardService clipboardService,
@@ -82,6 +83,7 @@ namespace TumblThree.Applications.Controllers
             autoDownloadCommand = new DelegateCommand(EnqueueAutoDownload, CanEnqueueAutoDownload);
             showDetailsCommand = new DelegateCommand(ShowDetailsCommand);
             copyUrlCommand = new DelegateCommand(CopyUrl, CanCopyUrl);
+            checkStatusCommand = new AsyncDelegateCommand(CheckStatusAsync, CanCheckStatus);
         }
 
         private ManagerViewModel ManagerViewModel
@@ -119,6 +121,7 @@ namespace TumblThree.Applications.Controllers
             ManagerViewModel.VisitBlogCommand = visitBlogCommand;
             ManagerViewModel.ShowDetailsCommand = showDetailsCommand;
             ManagerViewModel.CopyUrlCommand = copyUrlCommand;
+            ManagerViewModel.CheckStatusCommand = checkStatusCommand;
 
             ManagerViewModel.PropertyChanged += ManagerViewModelPropertyChanged;
 
@@ -193,7 +196,7 @@ namespace TumblThree.Applications.Controllers
 
         private async Task CheckBlogsOnlineStatusAsync()
         {
-            if (shellService.Settings.CheckOnlineStatusAtStartup)
+            if (shellService.Settings.CheckOnlineStatusOnStartup)
             {
                 await Task.Run(async () =>
                 {
@@ -482,6 +485,35 @@ namespace TumblThree.Applications.Controllers
         }
 
         private bool CanCopyUrl()
+        {
+            return ManagerViewModel.SelectedBlogFile != null;
+        }
+
+        private async Task CheckStatusAsync()
+        {
+    //        foreach (IBlog blog in selectionService.SelectedBlogFiles.ToArray())
+    //        {
+    //            ICrawler crawler = CrawlerFactory.GetCrawler(blog, new CancellationToken(), new PauseToken(),
+    //new Progress<DownloadProgress>(), shellService, crawlerService, managerService);
+    //            await crawler.IsBlogOnlineAsync();
+    //        }
+            await Task.Run(async () =>
+            {
+                var semaphoreSlim = new SemaphoreSlim(25);
+                IEnumerable<IBlog> blogs = selectionService.SelectedBlogFiles.ToArray();
+                IEnumerable<Task> tasks = blogs.Select(async blog =>
+                {
+                    await semaphoreSlim.WaitAsync();
+                    ICrawler crawler = CrawlerFactory.GetCrawler(blog, new CancellationToken(), new PauseToken(),
+                        new Progress<DownloadProgress>(), shellService, crawlerService, managerService);
+                    await crawler.IsBlogOnlineAsync();
+                    semaphoreSlim.Release();
+                });
+                await Task.WhenAll(tasks);
+            });
+        }
+
+        private bool CanCheckStatus()
         {
             return ManagerViewModel.SelectedBlogFile != null;
         }
